@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ImageGallery.css';
+import { invoke } from '@tauri-apps/api/core';
 
-const imageSources = [
-  'https://www.dmoe.cc/random.php',
-  'https://picsum.photos/200/300',
-  'https://www.dmoe.cc/random.php',
-  'https://picsum.photos/600/300',
-  'https://www.dmoe.cc/random.php',
-  'https://picsum.photos/1920/1080',
-  'https://www.dmoe.cc/random.php',
-  'https://picsum.photos/700/300',
-  'https://www.dmoe.cc/random.php',
-  'https://picsum.photos/1200/300',
-];
+// const imageSources = [
+//   'https://www.dmoe.cc/random.php',
+//   'https://picsum.photos/200/300',
+//   'https://www.dmoe.cc/random.php',
+//   'https://picsum.photos/600/300',
+//   'https://www.dmoe.cc/random.php',
+//   'https://picsum.photos/1920/1080',
+//   'https://www.dmoe.cc/random.php',
+//   'https://picsum.photos/700/300',
+//   'https://www.dmoe.cc/random.php',
+//   'https://picsum.photos/1200/300',
+// ];
 
 interface Image {
   src: string;
@@ -21,21 +22,25 @@ interface Image {
 }
 
 const ImageGallery: React.FC = () => {
-  const [layout, setLayout] = useState<'grid' | 'loose'>('grid');
+  const [layout, setLayout] = useState<'grid' | 'loose'>('loose');
   const [images, setImages] = useState<Image[]>([]);
   const galleryContainerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
   useEffect(() => {
     const loadImageDimensions = async () => {
+      let paths = await invoke<string[]>('get_image_paths');
+      console.log(`从 Rust 获得了 ${paths.length} 张图片`);
+      
       const loadedImages: Image[] = await Promise.all(
-        imageSources.map(async (src) => {
+        paths.map(async (src) => {
           const img = new Image();
-          img.src = src;
+          img.src = `http://asset.localhost/${src}`;
           await new Promise<void>((resolve) => {
             img.onload = () => resolve();
           });
-          return { src, width: img.width, height: img.height };
+          console.log(`Loaded image ${src} with dimensions: ${img.width}x${img.height}`);
+          return img;
         })
       );
       setImages(loadedImages);
@@ -106,6 +111,7 @@ const ImageGallery: React.FC = () => {
                       src={image.src}
                       alt={`Loose layout item ${imgIndex}`}
                       style={{ width: `${imageWidth}px`, height: `${rowHeight}px` }}
+                      loading="lazy" // 浏览器原生懒加载
                     />
                   </div>
                 );

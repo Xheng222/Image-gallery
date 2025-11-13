@@ -1,15 +1,15 @@
 import { JSX, useEffect, useState } from "react";
 import {  List, RowComponentProps } from 'react-window';
 import "./App.css";
-// import ImageGallery from "./ImageGallery";
+import ImageGallery from "./ImageGallery";
 import { invoke } from "@tauri-apps/api/core";
 
 function App() {
   return (
     <main className="container">
       <h1>图片展示</h1>
-      {/* <ImageGallery /> */}
-      <TestImageFromRust />
+      <ImageGallery />
+      {/* <TestImageFromRust /> */}
     </main>
   );
 }
@@ -17,10 +17,6 @@ function App() {
 function TestImageFromRust(): JSX.Element {
 
   const [imagePaths, setImagePaths] = useState<string[]>([]);
-  // const [dimensions, setDimensions] = useState({ 
-  //   height: window.innerHeight, 
-  //   width: window.innerWidth 
-  // });
 
   // 1. 在组件加载时，从 Rust 获取图片路径列表
   useEffect(() => {
