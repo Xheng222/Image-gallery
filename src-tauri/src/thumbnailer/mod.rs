@@ -1,3 +1,3 @@
 pub mod thumbnailer;
-pub mod model;
-pub mod utils;
+pub mod models;
+mod utils;

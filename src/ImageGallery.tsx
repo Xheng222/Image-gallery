@@ -15,8 +15,13 @@ import { invoke } from '@tauri-apps/api/core';
 //   'https://picsum.photos/1200/300',
 // ];
 
+interface ID {
+  idx: number;
+  version: number;
+}
+
 interface Image {
-  src: string;
+  id: ID;
   width: number;
   height: number;
 }
@@ -29,21 +34,15 @@ const ImageGallery: React.FC = () => {
 
   useEffect(() => {
     const loadImageDimensions = async () => {
-      let paths = await invoke<string[]>('get_image_paths');
-      console.log(`从 Rust 获得了 ${paths.length} 张图片`);
+      let images = await invoke<Image[]>('get_image_paths');
+      console.log(`从 Rust 获得了 ${images.length} 张图片`);
       
-      const loadedImages: Image[] = await Promise.all(
-        paths.map(async (src) => {
-          const img = new Image();
-          img.src = `http://asset.localhost/${src}`;
-          await new Promise<void>((resolve) => {
-            img.onload = () => resolve();
-          });
-          console.log(`Loaded image ${src} with dimensions: ${img.width}x${img.height}`);
-          return img;
+      await Promise.all(
+        images.map(async (image) => {
+          console.log(`Loaded image ${image.id.idx} with dimensions: ${image.width}x${image.height}`);
         })
       );
-      setImages(loadedImages);
+      setImages(images);
     };
     loadImageDimensions();
   }, []);
@@ -108,7 +107,8 @@ const ImageGallery: React.FC = () => {
                 return (
                   <div key={imgIndex} className="image-item-wrapper">
                     <img
-                      src={image.src}
+                      // src={`http://asset.localhost/${image.id.idx}/${image.id.version}`}
+                      src={`http://asset.localhost/${JSON.stringify(image.id)}`}
                       alt={`Loose layout item ${imgIndex}`}
                       style={{ width: `${imageWidth}px`, height: `${rowHeight}px` }}
                       loading="lazy" // 浏览器原生懒加载
@@ -127,7 +127,7 @@ const ImageGallery: React.FC = () => {
     <div className="image-gallery grid">
       {images.map((image, index) => (
         <div key={index} className="image-item">
-          <img src={image.src} alt={`Grid item ${index}`} />
+          <img src={`asset://localhost/${image.id}`} alt={`Grid item ${index}`} />
         </div>
       ))}
     </div>
