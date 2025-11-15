@@ -1,5 +1,7 @@
+use std::collections::HashSet;
+
 use serde::{Deserialize, Serialize};
-use slotmap::{KeyData, new_key_type};
+use slotmap::{KeyData, new_key_type, KeyData};
 use crate::db::db::ImageDB;
 
 new_key_type! {
@@ -35,19 +37,19 @@ pub struct ImageData {
 pub struct FolderData {
     pub id: FolderID,
     pub folder_path: String,
-    pub images: Vec<ImageID>,
+    pub images: HashSet<ImageID>,
 }
 
 /// 发送给数据库的命令
 #[derive(Debug)]
 pub enum DbCommand {
-    /// 添加一个文件夹（仅创建 FolderData）
+    /// 添加一个文件夹
     AddFolder(String), 
     
     /// 批量添加在一个文件夹中找到的文件
     AddFilesBatch {
-        folder_path: FolderID, // 文件夹 ID
-        files: Vec<ImageData>,  // 找到的一批文件
+        folder_id: FolderID, // 文件夹 ID
+        images: Vec<ImageData>,  // 找到的一批文件
     },
     
     // ... 未来可以扩展, e.g., RemoveFolder, RemoveFile ...

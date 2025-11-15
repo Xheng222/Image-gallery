@@ -4,23 +4,23 @@ use crate::db::models::{FolderID, Image, ImageData, ImageID};
 
 
 impl ImageData {
-    pub fn new(folder_id: FolderID, image_id: ImageID, file_path: String) -> Self {
-        let name_index = Path::new(&file_path)
+    pub fn new(folder_id: FolderID, file_path: &Path, width: u32, height: u32) -> Self {
+        let name_index = file_path
             .file_name()
             .map_or(0, |file_name| {
-                file_path.len() - file_name.len()
+                file_path.as_os_str().len() - file_name.len()
             });
 
         let image = Image {
-            id: Some(image_id),
-            width: 0,
-            height: 0,
+            id: None,
+            width: width,
+            height: height,
         };
 
         Self {
-            folder_id,
-            image,
-            file_path: file_path,
+            folder_id: folder_id,
+            image: image,
+            file_path: file_path.to_string_lossy().to_string(),
             file_name_index: name_index,
         }
     }

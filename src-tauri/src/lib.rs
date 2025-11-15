@@ -1,9 +1,9 @@
 use once_cell::sync::OnceCell;
 use percent_encoding::percent_decode_str;
 use serde_json::ser;
-use tauri::{AppHandle, Manager, Runtime, UriSchemeContext, UriSchemeResponder};
+use tauri::{AppHandle, Manager, Runtime, UriSchemeContext, UriSchemeResponder, utils::platform::target_triple};
 
-use crate::{db::{db::ImageDB, models::{ImageData, ImageID}}, thumbnailer::thumbnailer::ThumbnailerHandler};
+use crate::{db::{db::ImageDB, models::{AppImageDB, ImageData, ImageID}}, thumbnailer::thumbnailer::ThumbnailerHandler};
 
 mod thumbnailer;
 mod db;
@@ -12,7 +12,7 @@ pub static APP_HANDLE: OnceCell<AppHandle> = OnceCell::new();
 
 /// 获取图片路径列表
 #[tauri::command]
-fn get_image_paths() -> Vec<db::models::Image> {
+async fn get_image_paths(app_handle: AppHandle) -> Vec<db::models::Image> {
     println!("Getting image paths...");
 
     let image = db::models::Image {
@@ -21,15 +21,13 @@ fn get_image_paths() -> Vec<db::models::Image> {
         height: 1080,
     };
 
-    println!("Image Key: {}", serde_json::to_string(&image.id).unwrap());
-    let str = "{\"idx\":4294967295,\"version\":1}";
-    let image_id: db::models::ImageID = serde_json::from_str(str).unwrap();
-    println!("Parsed ImageID from string: {:?}", image_id);
-
     let mut asset_dir = Vec::new();
     for _i in 1..=50 {
         asset_dir.push(image.clone());
     }
+
+    let image_db = app_handle.state::<AppImageDB>();
+    image_db.read().await.send_add_folder_command("F:\\Pictures\\Saved Pictures".to_string()).await;
 
     asset_dir
 }
@@ -52,8 +50,7 @@ fn init_app(app_handle: &AppHandle) {
         .set(app_handle.clone())
         .expect("failed to set global app handle");
     
-    // let db = ImageDB::new();
-    // app_handle.manage(db);
+    let db = ImageDB::new();
 
     // let thumbnailer_handler = ThumbnailerHandler::connect();
     // app_handle.manage(thumbnailer_handler);

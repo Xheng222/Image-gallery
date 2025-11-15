@@ -30,5 +30,9 @@ once_cell = { version = "1.21.3", features = ["parking_lot"] }
 tauri-plugin-shell = "2.3.3"
 slotmap = { version = "1", features = ["serde"] }
 percent-encoding = "2"
+ignore = "0.4"
+
+
+
 #　mime_guess = "2"       # 猜测文件的 MIME 类型
 #　glob = "0.3"           # 用于查找文件 (演示用)
